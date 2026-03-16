@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>PharmaBot – Smart Pharmacy Assistant</title>
+
+  <style>
+    :root {
+      --primary: #0f766e;
+      --accent: #14b8a6;
+      --bg: #f6faf9;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --success: #059669;
+      --warning: #d97706;
+      --shadow: 0 12px 35px rgba(15, 118, 110, .15)
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Inter, Segoe UI, Arial
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--text)
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--primary)
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 25px
+    }
+
+    h3 {
+      color: var(--primary)
+    }
+
+    .hidden {
+      display: none
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: var(--card);
+      padding: 30px;
+      border-radius: 22px;
+      box-shadow: var(--shadow)
+    }
+
+    #dashboardScreen {
+      max-width: 1200px;
+      margin: auto
+    }
+
+    label {
+      display: block;
+      margin-top: 14px;
+      color: var(--muted)
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border-radius: 12px;
+      border: 1px solid var(--border)
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 16px;
+      border: none;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--primary));
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer
+    }
+
+    button.secondary {
+      background: #94a3b8
+    }
+
+    button.small {
+      width: auto;
+      padding: 6px 10px;
+      font-size: 12px;
+      margin: 2px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #fff;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: var(--shadow)
+    }
+
+    th,
+    td {
+      padding: 14px;
+      font-size: 14px
+    }
+
+    th {
+      background: var(--primary);
+      color: #fff
+    }
+
+    tr:nth-child(even) {
+      background: #f9fbfb
+    }
+
+    .status.Pending {
+      color: var(--warning);
+      font-weight: 600
+    }
+
+    .status.Completed {
+      color: var(--success);
+      font-weight: 600
+    }
+
+    .highlight-yellow {
+      background: #fef9c3 !important
+    }
+
+    .highlight-blue {
+      background: #e0f2fe !important
+    }
+
+    .highlight-red {
+      background: #fee2e2 !important
+    }
+
+    #revenue {
+      font-size: 20px;
+      color: var(--success);
+      font-weight: 700
+    }
+
+    .note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>PharmaBot</h2>
+  <div class="subtitle">Smart Pharmacy Assistant • Precision Edition</div>
+
+  <!-- ================= CUSTOMER ================= -->
+  <div id="customerScreen" class="container">
+    <h3>Patient Medicine Request</h3>
+
+    <label>Patient Name</label>
+    <input id="custName">
+
+    <label>Age</label>
+    <input id="custAge" type="number">
+
+    <label>Choose Option</label>
+    <select id="mode" onchange="toggleMode()">
+      <option value="auto">System Suggested Medicine</option>
+      <option value="manual">I Know My Medicine</option>
+    </select>
+
+    <!-- AUTO MODE -->
+    <div id="autoMode">
+      <label>Select Condition</label>
+      <div class="grid">
+        <button onclick="selectCondition('highbp')">❤️ High BP</button>
+        <button onclick="selectCondition('lowbp')">💤 Low BP</button>
+        <button onclick="selectCondition('diabetes')">🩸 Type-2 Diabetes</button>
+        <button onclick="selectCondition('asthma')">🌬 Asthma</button>
+        <button onclick="selectCondition('fever')">🤒 Fever</button>
+        <button onclick="selectCondition('infection')">🦠 Infection</button>
+      </div>
+    </div>
+
+    <!-- MANUAL MODE -->
+    <div id="manualMode" class="hidden">
+      <label>Medicine Name</label>
+      <input id="manualMed">
+      <label>Dosage Instructions</label>
+      <input id="manualDose">
+      <label>Quantity</label>
+      <input id="manualQty" type="number">
+    </div>
+
+    <label>Upload Doctor’s Prescription (optional)</label>
+    <input type="file" id="prescription" accept="image/*">
+
+    <div id="suggestionBox" class="hidden">
+      <p id="medDetails"></p>
+    </div>
+
+    <button onclick="submitOrder()">Confirm & Generate Bill</button>
+    <button class="secondary" onclick="showLogin()">Admin Login</button>
+
+    <div class="note">
+      ⚠ Educational demo only. Medicines based on common NHS guidance.
+    </div>
+  </div>
+
+  <!-- ================= LOGIN ================= -->
+  <div id="loginScreen" class="container hidden">
+    <h3>Admin Login</h3>
+    <input id="adminUser" placeholder="Username">
+    <input id="adminPass" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <button class="secondary" onclick="showCustomer()">Back</button>
+  </div>
+
+  <!-- ================= DASHBOARD ================= -->
+  <div id="dashboardScreen" class="hidden">
+
+    <input placeholder="Search patient, medicine, condition…" oninput="smartSearch(this.value)"
+      style="margin-bottom:14px;padding:12px;border-radius:12px;border:1px solid #e5e7eb;width:100%">
+
+    <h3>Total Revenue: ₹<span id="revenue">0</span></h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Patient</th>
+          <th>Condition</th>
+          <th>Medicine</th>
+          <th>Dosage</th>
+          <th>Cost</th>
+          <th>Rx</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="ordersBody"></tbody>
+    </table>
+
+    <button class="secondary" onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    let orders = JSON.parse(localStorage.getItem("orders") || "[]");
+    let selected = null;
+
+    function toggleMode() {
+      autoMode.classList.toggle("hidden", mode.value === "manual");
+      manualMode.classList.toggle("hidden", mode.value === "auto");
+      suggestionBox.classList.add("hidden");
+    }
+
+    /* ---- MEDICINE DATABASE (DETAILED) ---- */
+    function selectCondition(type) {
+      const db = {
+        highbp: {
+          c: "Hypertension", m: "Amlodipine 5mg",
+          d: "1 tablet once daily",
+          info: "Calcium channel blocker. Monitor BP regularly.",
+          q: 30, p: 12
+        },
+        lowbp: {
+          c: "Hypotension", m: "Fludrocortisone 0.1mg",
+          d: "1 tablet daily under supervision",
+          info: "Used for chronic low BP. Monitor electrolytes.",
+          q: 30, p: 18
+        },
+        diabetes: {
+          c: "Type-2 Diabetes", m: "Metformin 500mg",
+          d: "1 tablet twice daily with meals",
+          info: "First-line antidiabetic. Avoid alcohol excess.",
+          q: 60, p: 10
+        },
+        asthma: {
+          c: "Asthma", m: "Salbutamol Inhaler",
+          d: "2 puffs when required",
+          info: "Short-acting bronchodilator.",
+          q: 1, p: 150
+        },
+        fever: {
+          c: "Fever", m: "Paracetamol 500mg",
+          d: "1–2 tablets every 6 hours (max 4g/day)",
+          info: "Analgesic & antipyretic.",
+          q: 6, p: 5
+        },
+        infection: {
+          c: "Bacterial Infection", m: "Amoxicillin",
+          d: "1 capsule 3× daily for 7 days",
+          info: "Complete full antibiotic course.",
+          q: 21, p: 20
+        }
+      };
+      selected = db[type];
+      medDetails.innerHTML = `
+    <b>Condition:</b> ${selected.c}<br>
+    <b>Medicine:</b> ${selected.m}<br>
+    <b>Dosage:</b> ${selected.d}<br>
+    <b>Notes:</b> ${selected.info}<br>
+    <b>Estimated Cost:</b> ₹${selected.q * selected.p}
+  `;
+      suggestionBox.classList.remove("hidden");
+    }
+
+    /* ---- SUBMIT ---- */
+    function submitOrder() {
+      if (!custName.value || !custAge.value) { alert("Enter patient details"); return }
+
+      let med = "", dose = "", cost = 0;
+      if (mode.value === "auto") {
+        if (!selected) { alert("Select condition"); return }
+        med = selected.m; dose = selected.d; cost = selected.q * selected.p;
+      } else {
+        med = manualMed.value; dose = manualDose.value;
+        cost = (manualQty.value || 1) * 10;
+      }
+
+      orders.push({
+        id: Date.now(),
+        name: custName.value,
+        condition: selected ? selected.c : "Manual Entry",
+        medicine: med, dosage: dose, cost,
+        rx: prescription.files.length ? "Yes" : "No",
+        status: "Pending", highlight: ""
+      });
+      localStorage.setItem("orders", JSON.stringify(orders));
+      alert("Order placed successfully");
+      location.reload();
+    }
+
+    /* ---- LOGIN ---- */
+    function login() {
+      adminUser.value === "admin" && adminPass.value === "admin123"
+        ? showDashboard() : alert("Invalid credentials")
+    }
+    function showDashboard() { loginScreen.classList.add("hidden"); dashboardScreen.classList.remove("hidden"); render() }
+    function showLogin() { customerScreen.classList.add("hidden"); loginScreen.classList.remove("hidden") }
+    function showCustomer() { loginScreen.classList.add("hidden"); dashboardScreen.classList.add("hidden"); customerScreen.classList.remove("hidden") }
+    function logout() { showCustomer() }
+
+    /* ---- DASHBOARD ---- */
+    function render(list = orders) {
+      ordersBody.innerHTML = ""; let t = 0;
+      list.forEach(o => {
+        if (o.status === "Completed") t += o.cost;
+        ordersBody.innerHTML += `
+      <tr class="${o.highlight ? 'highlight-' + o.highlight : ''}">
+        <td>${o.name}</td><td>${o.condition}</td>
+        <td>${o.medicine}</td><td>${o.dosage}</td>
+        <td>₹${o.cost}</td><td>${o.rx}</td>
+        <td class="status ${o.status}">${o.status}</td>
+        <td>
+          <button class="small" onclick="finish(${o.id})">✔</button>
+          <button class="small" onclick="mark(${o.id})">🎯</button>
+        </td>
+      </tr>`;
+      });
+      revenue.innerText = t;
+    }
+    function finish(id) { orders = orders.map(o => o.id === id ? { ...o, status: "Completed" } : o); save() }
+    function mark(id) {
+      const c = ["", "yellow", "blue", "red"];
+      orders = orders.map(o => o.id === id ? { ...o, highlight: c[(c.indexOf(o.highlight) + 1) % c.length] } : o);
+      save();
+    }
+    function save() { localStorage.setItem("orders", JSON.stringify(orders)); render() }
+    function smartSearch(q) {
+      q = q.toLowerCase();
+      render(orders.filter(o =>
+        o.name.toLowerCase().includes(q) ||
+        o.medicine.toLowerCase().includes(q) ||
+        o.condition.toLowerCase().includes(q)
+      ))
+    }
+  </script>
+
+</body>
+
+</html>
